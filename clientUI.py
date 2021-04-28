@@ -2,9 +2,12 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QMessageBox
+import speech_recognition as sr
 import sys
 import socket
 import time
+
+
 
 class ConnectUI(QMainWindow):
     def __init__(self):
@@ -240,12 +243,42 @@ class ClientUI(QMainWindow):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Return or e.key() == Qt.Key_Enter:
             self.send()
+        if e.key() == Qt.Key_F1:
+            self.help()
+        if e.key() == Qt.Key_F2:
+            sys.exit()
+        if e.key() == Qt.Key_F3:
+           self.imote1()
+        if e.key() == Qt.Key_F4:
+           self.imote2()
+        if e.key() == Qt.Key_F5:
+           self.imote3()
 
     def send(self):
         text = self.userinput.text()
         self.userinput.setText("")
         self.worker.send(text)
 
+    def help(self):
+        text = "님이 채팅방 규칙을 요청하셨습니다\n첫째 욕설은 사용 금지입니다.\n둘째 다른사람과 분쟁금지입니다.\n또한 F2를 누를경우 클라이언트가 종료됩니다.\nf3~f5까지 이모티콘이 있습니다"
+        self.userinput.setText("")
+        self.worker.send(text)
+
+    def imote1(self):
+        text = "\U0001f600"
+        self.userinput.setText("")
+        self.worker.send(text)
+        
+    def imote2(self):
+        text = "\U0001f606"
+        self.userinput.setText("")
+        self.worker.send(text)
+        
+    def imote3(self):
+        text = "\U0001f923"
+        self.userinput.setText("")
+        self.worker.send(text)
+        
     @pyqtSlot(list)
     def usertableDisplay(self, usertable):
         print("Got {}".format(usertable))

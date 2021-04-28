@@ -277,8 +277,6 @@ class ServerUI(QMainWindow):
             self.tableWidget.setItem(index, 0, QTableWidgetItem(ip))
             self.tableWidget.setItem(index, 1, QTableWidgetItem(str(port)))
             self.tableWidget.setItem(index, 2, QTableWidgetItem(nick))
-
-
 app = QApplication(sys.argv)
 w = ServerUI()
 sys.exit(app.exec_())
