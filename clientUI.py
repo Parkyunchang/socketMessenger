@@ -6,7 +6,10 @@ import speech_recognition as sr
 import sys
 import socket
 import time
-
+import speech_recognition as sr
+import pyaudio
+import googletrans
+from googletrans import Translator
 
 
 class ConnectUI(QMainWindow):
@@ -212,6 +215,11 @@ class ClientUI(QMainWindow):
         self.sendbutton.setObjectName("sendbutton")
         self.horizontalLayout.addWidget(self.sendbutton)
 
+        self.voicebutton = QPushButton(self.centralwidget)
+        self.voicebutton.setObjectName("voicebutton")
+        self.horizontalLayout.addWidget(self.voicebutton)
+
+
         self.gridLayout.addLayout(self.horizontalLayout, 3, 1, 1, 2)
 
         self.chattextbox = QTextBrowser(self.centralwidget)
@@ -225,6 +233,7 @@ class ClientUI(QMainWindow):
         self.show()
 
         self.sendbutton.clicked.connect(self.send)
+        self.voicebutton.clicked.connect(self.change)
         self.worker = ClientSocketGenerator(self.ip, self.port, self.nick)
         self.worker.usertablesender.connect(self.usertableDisplay)
         self.worker.msgSender.connect(self.displayMsg)
@@ -236,6 +245,7 @@ class ClientUI(QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("MainWindow", "소켓 채팅 클라이언트"))
         self.sendbutton.setText(_translate("MainWindow", "전송"))
+        self.voicebutton.setText(_translate("MainWindow", "목소리전환"))
 
     def closeEvent(self, *args, **kwargs):
         self.worker.close()
@@ -248,11 +258,16 @@ class ClientUI(QMainWindow):
         if e.key() == Qt.Key_F2:
             sys.exit()
         if e.key() == Qt.Key_F3:
-           self.imote1()
+            self.translatorKotoEn()
         if e.key() == Qt.Key_F4:
-           self.imote2()
+           self.translatorENtoKO()
         if e.key() == Qt.Key_F5:
-           self.imote3()
+           self.translatorKOtoJP()
+        if e.key() == Qt.Key_F7:
+           self.voice_tts()
+        if e.key() == Qt.Key_F6:
+           self.translatorJPtoKO()
+
 
     def send(self):
         text = self.userinput.text()
@@ -260,25 +275,68 @@ class ClientUI(QMainWindow):
         self.worker.send(text)
 
     def help(self):
-        text = "님이 채팅방 규칙을 요청하셨습니다\n첫째 욕설은 사용 금지입니다.\n둘째 다른사람과 분쟁금지입니다.\n또한 F2를 누를경우 클라이언트가 종료됩니다.\nf3~f5까지 이모티콘이 있습니다"
+        text = "님이 채팅방 규칙을 요청하셨습니다\n첫째 욕설은 사용 금지입니다.\n둘째 다른사람과 분쟁금지입니다.\n또한 F2를 누를경우 클라이언트가 종료됩니다.\nf3은 한영번역 f4는 영한 번역 f5는 한일번역 f6는 일한번역이 있습니다\n f7는 음성을 인식하여 tts로 바꿔줍니다"
         self.userinput.setText("")
         self.worker.send(text)
 
-    def imote1(self):
-        text = "\U0001f600"
+    def change(self):
+        r = sr.Recognizer()
+
+        with sr.Microphone() as source:
+            audio = r.listen(source)
+
+            try:
+                text = r.recognize_google(audio, language='ko-KR')
+            except:
+                text = 'Sirry could not recignize your voice'
         self.userinput.setText("")
         self.worker.send(text)
-        
-    def imote2(self):
-        text = "\U0001f606"
+
+    def voice_tts(self):
+        r = sr.Recognizer()
+
+        with sr.Microphone() as source:
+            audio = r.listen(source)
+
+            try:
+                text = r.recognize_google(audio, language='ko-KR')
+            except:
+                text = 'Sirry could not recignize your voice'
         self.userinput.setText("")
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
         self.worker.send(text)
-        
-    def imote3(self):
-        text = "\U0001f923"
+        engine.client_socket.send(text.encode())
+
+    def translatorKotoEn(self):
+        text = self.userinput.text()
+        translator = Translator()
+        trans = translator.translate(text, src='ko', dest='en')
         self.userinput.setText("")
-        self.worker.send(text)
-        
+        self.worker.send(trans.text)
+
+    def translatorENtoKO(self):
+        text = self.userinput.text()
+        translator = Translator()
+        trans = translator.translate(text, src='en', dest='ko')
+        self.userinput.setText("")
+        self.worker.send(trans.text)
+
+    def translatorKOtoJP(self):
+        text = self.userinput.text()
+        translator = Translator()
+        trans = translator.translate(text, src='ko', dest='ja')
+        self.userinput.setText("")
+        self.worker.send(trans.text)
+
+    def translatorJPtoKO(self):
+        text = self.userinput.text()
+        translator = Translator()
+        trans = translator.translate(text, src='ja', dest='ko')
+        self.userinput.setText("")
+        self.worker.send(trans.text)
+
     @pyqtSlot(list)
     def usertableDisplay(self, usertable):
         print("Got {}".format(usertable))
