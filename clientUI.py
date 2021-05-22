@@ -1,3 +1,4 @@
+import pyttsx3
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, Qt
@@ -263,11 +264,10 @@ class ClientUI(QMainWindow):
            self.translatorENtoKO()
         if e.key() == Qt.Key_F5:
            self.translatorKOtoJP()
-        if e.key() == Qt.Key_F7:
-           self.voice_tts()
         if e.key() == Qt.Key_F6:
            self.translatorJPtoKO()
-
+        if e.key() == Qt.Key_F7:
+           self.voice_tts()
 
     def send(self):
         text = self.userinput.text()
@@ -302,12 +302,12 @@ class ClientUI(QMainWindow):
                 text = r.recognize_google(audio, language='ko-KR')
             except:
                 text = 'Sirry could not recignize your voice'
-        self.userinput.setText("")
         engine = pyttsx3.init()
         engine.say(text)
         engine.runAndWait()
+        self.userinput.setText("")
         self.worker.send(text)
-        engine.client_socket.send(text.encode())
+
 
     def translatorKotoEn(self):
         text = self.userinput.text()
